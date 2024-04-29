@@ -1,4 +1,7 @@
 Clone this repository inside ros2_ws and call it src
+```bash
+git clone {url} src
+```
 
 # Set environment 
 
