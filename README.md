@@ -1,4 +1,4 @@
-Clone this repository inside ros2_ws and call it src
+        Clone this repository inside ros2_ws and call it src
 ```bash
 git clone {url} src
 ```
@@ -13,6 +13,8 @@ virtualenv .venv --system-site-packages
 ## start environment
 ```bash
 source .venv/bin/activate
+
+colcon build 
 
 source /opt/ros/humble/setup.bash
 

@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
-from orin.bcapclient import BCAPClient as bcapclient
+from .orin.bcapclient import BCAPClient as bcapclient
 
 from sensor_msgs.msg import JointState
 
