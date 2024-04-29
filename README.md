@@ -1,4 +1,4 @@
-        Clone this repository inside ros2_ws and call it src
+Clone this repository inside ros2_ws and call it src
 ```bash
 git clone {url} src
 ```
@@ -45,6 +45,19 @@ Install Flask
 ```bash
 pip install Flask
 ```
+
+Add dependecy in ros project (in ros2_ws directory)
+```bash
+apt-get install python3-rosdep
+rosdep install --from-paths src -y --ignore-src 
+```
+
+in package.xml add the next line
+```bash
+<exec_depend>python3-flask</exec_depend>
+```
+
+
 ## start flask-backend (on localhost:5000)
 
 ```bash
