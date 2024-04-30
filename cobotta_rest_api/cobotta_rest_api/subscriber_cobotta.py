@@ -35,9 +35,6 @@ class HardwareControl(Node):
 
         self.HRobot = self.m_bcapclient.controller_getrobot(self.hCtrl, "Arm", "")
 
-        self.current_joints_states = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
-        print(self.current_joints_states)
-
         super().__init__("sub_joint_state")
         self.sub_joint_states = self.create_subscription(
             JointState, "/joint_states", self.my_timer_callback, 10
@@ -45,11 +42,15 @@ class HardwareControl(Node):
         self.sub_joint_states  # prevent unused variable warning
 
     def move_joint(self, j1=0, j2=0, j3=90, j4=0, j5=90, j6=0):
+        self.current_joints_states = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
         self.m_bcapclient.robot_execute(self.HRobot, "TakeArm")
         self.m_bcapclient.robot_execute(self.HRobot, "Motor", [1, 0])
         self.m_bcapclient.robot_execute(self.HRobot, "ExtSpeed", 100)
         self.m_bcapclient.robot_move(
-            self.HRobot, 1, "@P J({},{},{},{},{},{})".format(self.current_joints_states[0]+j1, self.current_joints_states[1]+j2, self.current_joints_states[2]+j3, self.current_joints_states[3]+j4, self.current_joints_states[4]+j5, self.current_joints_states[5]+j6)
+            self.HRobot, 1, "@P J({},{},{},{},{},{})".format(self.current_joints_states[0]+j1,
+                                                                       self.current_joints_states[1]+j2,
+                                                                       self.current_joints_states[2]+j3,
+                                                             self.current_joints_states[3]+j4, self.current_joints_states[4]+j5, self.current_joints_states[5]+j6)
         )
         self.m_bcapclient.robot_execute(self.HRobot, "GiveArm")
 
@@ -67,7 +68,7 @@ class HardwareControl(Node):
                 j5 = joint_msg.position[i]
             elif i == joint_msg.name.index("joint_6"):
                 j6 = joint_msg.position[i]
-
+        self.get_logger().info('Received')
         self.move_joint(j1, j2, j3, j4, j5, j6)
 
     def timer_callback(self, joint_msg):
