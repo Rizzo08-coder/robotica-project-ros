@@ -22,7 +22,7 @@ def moveCobotta():
     joint_state.velocity = []
     joint_state.effort = []
     publisher.publish(joint_state)
-    node.get_logger().info('Publishing: "%s"' % joint_state.name)
+    node.get_logger().info('Publishing: "%s"' % joint_state.position)
     return { 'joint_1': joint_1_delta,
              'joint_2': joint_2_delta,
              'joint_3': joint_3_delta,
