@@ -34,7 +34,7 @@ vim /home/{name}/.cache/JetBrains/RemoteDev/dist/{cached_pycharm_version}/bin/py
 
 insert the next line:
 ```bash
-. /opt/ros/humble/setup.sh' 
+. /opt/ros/humble/setup.sh 
 ```
 
 
@@ -50,11 +50,6 @@ Add dependecy in ros project (in ros2_ws directory)
 ```bash
 apt-get install python3-rosdep
 rosdep install --from-paths src -y --ignore-src 
-```
-
-in package.xml add the next line
-```bash
-<exec_depend>python3-flask</exec_depend>
 ```
 
 
