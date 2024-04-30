@@ -12,7 +12,7 @@ def moveCobotta():
     joint_delta = get_joints_delta_from_request()
     joint_state = JointState()
     joint_state.header.stamp = node.get_clock().now().to_msg()
-    joint_state.name = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
+    joint_state.name = [f'joint_{i}' for i in range(1, 7)]
     joint_state.position = joint_delta
     joint_state.velocity = []
     joint_state.effort = []
