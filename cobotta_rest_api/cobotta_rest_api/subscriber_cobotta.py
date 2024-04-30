@@ -35,6 +35,9 @@ class HardwareControl(Node):
 
         self.HRobot = self.m_bcapclient.controller_getrobot(self.hCtrl, "Arm", "")
 
+        self.current_joints_states = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
+        print(self.current_joints_states)
+
         super().__init__("sub_joint_state")
         self.sub_joint_states = self.create_subscription(
             JointState, "/joint_states", self.my_timer_callback, 10
@@ -46,7 +49,7 @@ class HardwareControl(Node):
         self.m_bcapclient.robot_execute(self.HRobot, "Motor", [1, 0])
         self.m_bcapclient.robot_execute(self.HRobot, "ExtSpeed", 100)
         self.m_bcapclient.robot_move(
-            self.HRobot, 1, "@P J({},{},{},{},{},{})".format(j1, j2, j3, j4, j5, j6)
+            self.HRobot, 1, "@P J({},{},{},{},{},{})".format(self.current_joints_states[0]+j1, self.current_joints_states[1]+j2, self.current_joints_states[2]+j3, self.current_joints_states[3]+j4, self.current_joints_states[4]+j5, self.current_joints_states[5]+j6)
         )
         self.m_bcapclient.robot_execute(self.HRobot, "GiveArm")
 
