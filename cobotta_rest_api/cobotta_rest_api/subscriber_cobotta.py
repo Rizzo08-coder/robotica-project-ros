@@ -50,7 +50,9 @@ class HardwareControl(Node):
             self.HRobot, 1, "@P J({},{},{},{},{},{})".format(self.current_joints_states[0]+j1,
                                                                        self.current_joints_states[1]+j2,
                                                                        self.current_joints_states[2]+j3,
-                                                             self.current_joints_states[3]+j4, self.current_joints_states[4]+j5, self.current_joints_states[5]+j6)
+                                                                       self.current_joints_states[3]+j4,
+                                                                       self.current_joints_states[4]+j5,
+                                                                       self.current_joints_states[5]+j6)
         )
         self.m_bcapclient.robot_execute(self.HRobot, "GiveArm")
 
