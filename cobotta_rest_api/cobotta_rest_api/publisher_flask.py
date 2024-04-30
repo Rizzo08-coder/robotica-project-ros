@@ -15,12 +15,15 @@ publisher = node.create_publisher(JointState, '/joint_states', 10)
 
 app = Flask(__name__)
 
-from . import flask_api
+from .blueprints import flask_api
+
 app.register_blueprint(flask_api.bp)
 
 
 def main(args=None):
     app.run(debug=True, host="localhost")
+    node.destroy_node()
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':

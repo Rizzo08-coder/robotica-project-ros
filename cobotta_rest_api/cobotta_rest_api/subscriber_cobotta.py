@@ -41,22 +41,28 @@ class HardwareControl(Node):
         )
         self.sub_joint_states  # prevent unused variable warning
 
-    def move_joint(self, j1=0, j2=0, j3=90, j4=0, j5=90, j6=0):
+    def move_joint(self, j1=0, j2=0, j3=90, j4=0, j5=90, j6=0, is_joints_abs="false"):
         self.current_joints_states = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
         self.m_bcapclient.robot_execute(self.HRobot, "TakeArm")
         self.m_bcapclient.robot_execute(self.HRobot, "Motor", [1, 0])
         self.m_bcapclient.robot_execute(self.HRobot, "ExtSpeed", 100)
-        self.m_bcapclient.robot_move(
-            self.HRobot, 1, "@P J({},{},{},{},{},{})".format(self.current_joints_states[0]+j1,
+        if is_joints_abs == "false": ##FIXME
+            self.m_bcapclient.robot_move(
+                  self.HRobot, 1, "@P J({},{},{},{},{},{})".format(self.current_joints_states[0]+j1,
                                                                        self.current_joints_states[1]+j2,
                                                                        self.current_joints_states[2]+j3,
                                                                        self.current_joints_states[3]+j4,
                                                                        self.current_joints_states[4]+j5,
                                                                        self.current_joints_states[5]+j6)
-        )
+            )
+        else:
+            self.m_bcapclient.robot_move(
+                self.HRobot, 1, "@P J({},{},{},{},{},{})".format(j1,j2,j3,j4,j5,j6)
+            )
         self.m_bcapclient.robot_execute(self.HRobot, "GiveArm")
 
     def my_timer_callback(self, joint_msg):
+        is_joints_abs = joint_msg.header.frame_id
         for i in range(len(joint_msg.name)):
             if i == joint_msg.name.index("joint_1"):
                 j1 = joint_msg.position[i]
@@ -70,44 +76,18 @@ class HardwareControl(Node):
                 j5 = joint_msg.position[i]
             elif i == joint_msg.name.index("joint_6"):
                 j6 = joint_msg.position[i]
+
         self.get_logger().info('Received')
-        self.move_joint(j1, j2, j3, j4, j5, j6)
-
-    def timer_callback(self, joint_msg):
-        for i in range(len(joint_msg.name)):
-            rviz_param_b = 0.0
-            if i == joint_msg.name.index("joint_1"):
-                rviz_param_a = -2.62 / 150
-                j1 = (joint_msg.position[i] - rviz_param_b) / rviz_param_a
-            elif i == joint_msg.name.index("joint_2"):
-                rviz_param_a = 2.8 / 160
-                j2 = (joint_msg.position[i] - rviz_param_b) / rviz_param_a
-            elif i == joint_msg.name.index("joint_3"):
-                rviz_param_a = -2.13 / 122
-                rviz_param_b = 1.5713
-                j3 = (joint_msg.position[i] - rviz_param_b) / rviz_param_a
-            elif i == joint_msg.name.index("joint_4"):
-                rviz_param_a = 2.97 / 170
-                j4 = (joint_msg.position[i] - rviz_param_b) / rviz_param_a
-            elif i == joint_msg.name.index("joint_5"):
-                rviz_param_a = -4.02 / 230
-                rviz_param_b = 1.5730
-                j5 = (joint_msg.position[i] - rviz_param_b) / rviz_param_a
-            elif i == joint_msg.name.index("joint_6"):
-                rviz_param_a = 2.97 / 180
-                j6 = (joint_msg.position[i] - rviz_param_b) / rviz_param_a
-
-        self.move_joint(j1, j2, j3, j4, j5, j6)
-
+        self.move_joint(j1, j2, j3, j4, j5, j6, is_joints_abs)
 
 def main(args=None):
     rclpy.init(args=args)
 
-    joint_state_pub = HardwareControl()
+    joint_state_sub = HardwareControl()
 
-    rclpy.spin(joint_state_pub)
+    rclpy.spin(joint_state_sub)
 
-    joint_state_pub.destroy_node()
+    joint_state_sub.destroy_node()
     rclpy.shutdown()
 
 
