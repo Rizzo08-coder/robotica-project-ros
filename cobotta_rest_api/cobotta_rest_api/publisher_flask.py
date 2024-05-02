@@ -1,28 +1,39 @@
 from threading import Thread
 
 import rclpy
+from rclpy.node import Node
 from sensor_msgs.msg import JointState
+
 from flask import Flask
 
-def create_publisher_node():
-    rclpy.init(args=None)
-    node = rclpy.create_node("publisher_cobotta_flask")
-    Thread(target=lambda: node).start()
-    return node
 
-node = create_publisher_node()
-publisher = node.create_publisher(JointState, '/joint_states', 10)
+class FlaskNode(Node):
+    def __init__(self):
+        rclpy.init()
+        super().__init__("sub_joint_state")
+        self.publisher = self.create_publisher(JointState, '/joint_states', 10)
+
+
+flask_pub = FlaskNode()
+
+
+'''
+def sendRequestPosition():
+    while not client.wait_for_service(timeout_sec=1.0):
+        node.get_logger().info('Service non disponibile, riprovo...')
+'''
+
 
 app = Flask(__name__)
 
 from .blueprints import flask_api
-
 app.register_blueprint(flask_api.bp)
 
 
 def main(args=None):
+    Thread(target=lambda: rclpy.spin(flask_pub)).start()
     app.run(debug=True, host="localhost")
-    node.destroy_node()
+    flask_pub.destroy_node()
     rclpy.shutdown()
 
 

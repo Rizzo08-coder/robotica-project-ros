@@ -4,6 +4,9 @@ from rclpy.node import Node
 from .orin.bcapclient import BCAPClient as bcapclient
 
 from sensor_msgs.msg import JointState
+from std_msgs.msg import *
+from example_interfaces.srv import SetBool
+
 
 
 class HardwareControl(Node):
@@ -39,7 +42,15 @@ class HardwareControl(Node):
         self.sub_joint_states = self.create_subscription(
             JointState, "/joint_states", self.my_timer_callback, 10
         )
-        self.sub_joint_states  # prevent unused variable warning
+        self.sub_joint_states  # prevent unused variable warnings
+
+        #self.current_joints_service = self.create_service(Float64MultiArray, '/get_position_joints', self.get_joints_callback)
+
+    '''
+    def get_joints_callback(self, request, response):
+        response.message = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
+        return response
+        '''
 
     def move_joint(self, j1=0, j2=0, j3=90, j4=0, j5=90, j6=0, is_joints_abs="false"):
         self.current_joints_states = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
@@ -94,18 +105,4 @@ def main(args=None):
 if __name__ == "__main__":
     main()
 
-"""
 
-Once, Full message:
-ros2 topic pub --once /joint_states sensor_msgs/JointState "{header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: ''}, name: ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6'], position: [0, 0, 90, 0, 90, 0], velocity: [], effort: []}"
-
-Loop, Full message:
-ros2 topic pub /joint_states sensor_msgs/JointState "{header: {seq: 1, stamp: {secs: 0, nsecs: 0}, frame_id: ''}, name: ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6'], position: [0, 0, 90, 0, 90, 0], velocity: [], effort: []}"
-
-Loop, Only position:
-ros2 topic pub /joint_states sensor_msgs/JointState "{name: ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6'], position: [0, 0, 90, 0, 90, 0]}"
-
-Once, Only position:
-ros2 topic pub --once /joint_states sensor_msgs/JointState "{name: ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6'], position: [0, 0, 90, 0, 90, 0]}"
-
-"""
