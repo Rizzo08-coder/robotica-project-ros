@@ -3,6 +3,7 @@ from threading import Thread
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
+from my_robot_interfaces.srv import PositionJoint
 
 from flask import Flask
 
@@ -12,6 +13,7 @@ class FlaskNode(Node):
         rclpy.init()
         super().__init__("sub_joint_state")
         self.publisher = self.create_publisher(JointState, '/joint_states', 10)
+        self.cli = self.create_client(PositionJoint, '/get-position-joints')
 
 
 flask_pub = FlaskNode()

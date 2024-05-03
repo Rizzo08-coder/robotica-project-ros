@@ -5,7 +5,7 @@ from .orin.bcapclient import BCAPClient as bcapclient
 
 from sensor_msgs.msg import JointState
 from std_msgs.msg import *
-from example_interfaces.srv import SetBool
+from my_robot_interfaces.srv import PositionJoint
 
 
 
@@ -44,7 +44,7 @@ class HardwareControl(Node):
         )
         self.sub_joint_states  # prevent unused variable warnings
 
-        #self.current_joints_service = self.create_service(Float64MultiArray, '/get_position_joints', self.get_joints_callback)
+        self.current_joints_service = self.create_service(PositionJoint, '/get_position_joints', self.get_joints_callback)
 
     '''
     def get_joints_callback(self, request, response):
