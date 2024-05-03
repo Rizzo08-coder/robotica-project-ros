@@ -2,6 +2,7 @@ from sensor_msgs.msg import JointState
 from flask import Blueprint, request
 
 from ..publisher_flask import flask_pub
+from ..publisher_flask import sendRequestPosition
 
 
 bp = Blueprint('api', __name__, url_prefix='/api')
@@ -18,7 +19,7 @@ def moveCobotta():
     joint_state.effort = []
     flask_pub.publisher.publish(joint_state)
     flask_pub.get_logger().info('Publishing: "%s"' % joint_state.position)
-    # sendRequestPosition()  //send request for actual position of robot (service ROS )
+    print(sendRequestPosition())
     return { 'joint' : joint_delta ,
              'joint_abs' : joint_state.header.frame_id}
 

@@ -13,17 +13,20 @@ class FlaskNode(Node):
         rclpy.init()
         super().__init__("sub_joint_state")
         self.publisher = self.create_publisher(JointState, '/joint_states', 10)
-        self.cli = self.create_client(PositionJoint, '/get-position-joints')
+        self.client = self.create_client(PositionJoint, '/get_position_joints')
 
 
 flask_pub = FlaskNode()
 
 
-'''
+
 def sendRequestPosition():
-    while not client.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('Service non disponibile, riprovo...')
-'''
+    req = PositionJoint.Request()
+    future = flask_pub.client.call(req)
+    return future.position
+
+
+
 
 
 app = Flask(__name__)

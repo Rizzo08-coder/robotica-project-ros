@@ -46,11 +46,10 @@ class HardwareControl(Node):
 
         self.current_joints_service = self.create_service(PositionJoint, '/get_position_joints', self.get_joints_callback)
 
-    '''
+
     def get_joints_callback(self, request, response):
-        response.message = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
+        response.position = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
         return response
-        '''
 
     def move_joint(self, j1=0, j2=0, j3=90, j4=0, j5=90, j6=0, is_joints_abs="false"):
         self.current_joints_states = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
