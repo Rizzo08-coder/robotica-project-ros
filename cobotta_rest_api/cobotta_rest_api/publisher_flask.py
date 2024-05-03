@@ -31,6 +31,9 @@ def sendRequestPosition():
 
 app = Flask(__name__)
 
+from . import db
+db.init_app(app)
+
 from .blueprints import flask_api
 app.register_blueprint(flask_api.bp)
 
