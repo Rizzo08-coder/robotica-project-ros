@@ -21,9 +21,12 @@ flask_pub = FlaskNode()
 
 
 def sendRequestPosition():
+    '''
     req = PositionJoint.Request()
     future = flask_pub.client.call(req)
     return future.position
+    '''
+    return [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
 
 
 
