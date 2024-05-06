@@ -6,6 +6,7 @@ from sensor_msgs.msg import JointState
 from my_robot_interfaces.srv import PositionJoint
 
 from flask import Flask
+from flask_socketio import SocketIO
 
 
 class FlaskNode(Node):
@@ -33,6 +34,7 @@ def sendRequestPosition():
 
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 from . import db
 db.init_app(app)
@@ -43,7 +45,7 @@ app.register_blueprint(flask_api.bp)
 
 def main(args=None):
     Thread(target=lambda: rclpy.spin(flask_pub)).start()
-    app.run(debug=True, host="localhost")
+    socketio.run(app, debug=True, host="localhost")
     flask_pub.destroy_node()
     rclpy.shutdown()
 
