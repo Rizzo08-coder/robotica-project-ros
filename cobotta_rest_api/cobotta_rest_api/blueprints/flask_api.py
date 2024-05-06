@@ -5,7 +5,6 @@ from ..db import get_db
 from ..publisher_flask import flask_pub
 from ..publisher_flask import sendRequestPosition
 
-
 bp = Blueprint('api', __name__, url_prefix='/api')
 
 @bp.route("/move-joints")
@@ -56,12 +55,13 @@ def getTrajectories():
 def savePoint(id):
     trajectory_id = id
     robot_position = sendRequestPosition()
+    #robot_position = [27.3,22.6,36.8,92.4,333.6,32.2]
     db = get_db()
     db.execute("INSERT INTO points (j1,j2,j3,j4,j5,j6,trajectory_id) values (?,?,?,?,?,?,?)",
                (robot_position[0], robot_position[1], robot_position[2], robot_position[3],
                 robot_position[4], robot_position[5], trajectory_id))
     db.commit()
-    return { 'point' : robot_position }
+    return { 'message' : 'point add successfully' }
 
 
 
@@ -72,6 +72,7 @@ def getPoints():
     return {'result': [{'id': point['id'],
                         'j1': point['j1'],
                         'j2': point['j2'],
+                        'j3': point['j3'],
                         'j4': point['j4'],
                         'j5': point['j5'],
                         'j6': point['j6'],
@@ -85,6 +86,7 @@ def getPointsByTrajectory(id):
     return {'result': [{'id': point['id'],
                         'j1': point['j1'],
                         'j2': point['j2'],
+                        'j3': point['j3'],
                         'j4': point['j4'],
                         'j5': point['j5'],
                         'j6': point['j6']} for point in points]}
@@ -98,6 +100,13 @@ def deletePoint(id):
     db.commit()
     return {'message' : "point deleted successfully"}
 
+@bp.route("/trajectories/<int:id>", methods=["DELETE"]) #parametri: traiettoria (id) -> metodo DELETE
+def deleteTrajectory(id):
+    db = get_db()
+    db.execute("DELETE FROM trajectories WHERE trajectories.id = ?", (id,))
+    db.commit()
+    return {'message' : "trajectories deleted successfully"}
+
 @bp.route("/trajectory/<int:id>") #parametri: traiettoria (id)
 def showTrajectory(id):
     db = get_db()
@@ -106,7 +115,7 @@ def showTrajectory(id):
             'name': trajectory['name']}
 
 @bp.route("/trajectory/<int:id>/play") #parametri: traiettoria (id)
-def playTrajectory(id):
+def playTrajectory(id): #TODO: fare action server con feedback
     db = get_db()
     points = db.execute("SELECT * FROM points JOIN trajectories ON points.trajectory_id = trajectories.id WHERE trajectories.id = ?",(id,)).fetchall()
     for point in points:
@@ -121,11 +130,6 @@ def getJointsPosFromPoint(point):
     for i in range(1,7):
         joints_position.append(point[f'j{i}'])
     return joints_position
-
-
-@bp.route("/joints-position") #fare Web Socket con pub/sub
-def getJointsPosition():
-    return {}
 
 
 

@@ -7,7 +7,7 @@ class Publisher(Node):
     def __init__(self):
         super().__init__("sub_joint_state")
         self.pub_joint_states = self.create_publisher(PosJoint, '/actual_joint_position', 10)
-        timer_period = 0.5
+        timer_period = 1
         self.timer = self.create_timer(timer_period, self.current_position)
 
     def current_position(self):
