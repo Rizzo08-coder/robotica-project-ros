@@ -22,10 +22,14 @@ class FlaskNode(Node):
         self.client = self.create_client(PositionJoint, '/get_position_joints')
 
     def actual_position_callback(self, msg): #emit msg on web socket (event: robot_position)
-        #actual_position = msg.position
-        actual_position = [1,1,1,1,1,1]
+        actual_position = list(msg.position)
         socketio.emit('robot_position', actual_position)
 
+
+
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 flask_pub = FlaskNode()
 
@@ -39,11 +43,6 @@ def sendRequestPosition():
 
 
 
-
-
-app = Flask(__name__)
-socketio = SocketIO(app)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 from . import db
 db.init_app(app)
