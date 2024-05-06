@@ -8,6 +8,7 @@ from my_robot_interfaces.msg import PosJoint
 
 from flask import Flask
 from flask_socketio import SocketIO
+from flask_cors import CORS
 
 
 class FlaskNode(Node):
@@ -42,6 +43,7 @@ def sendRequestPosition():
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 from . import db
 db.init_app(app)
