@@ -4,8 +4,8 @@ from rclpy.node import Node
 from .orin.bcapclient import BCAPClient as bcapclient
 
 from sensor_msgs.msg import JointState
-from std_msgs.msg import *
 from my_robot_interfaces.srv import PositionJoint
+from my_robot_interfaces.msg import PosJoint
 
 
 
@@ -43,9 +43,16 @@ class HardwareControl(Node):
             JointState, "/joint_states", self.my_timer_callback, 10
         )
         self.sub_joint_states  # prevent unused variable warnings
-
+        self.pub_joint_states = self.create_publisher(PosJoint, '/actual_joint_position', 10)
+        timer_period = 0.5
+        self.timer = self.create_timer(timer_period, self.current_position)
         self.current_joints_service = self.create_service(PositionJoint, '/get_position_joints', self.get_joints_callback)
 
+    def current_position(self):
+        msg = PosJoint()
+        msg.position = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
+        self.pub_joint_states.publish(msg)
+        self.get_logger().info('Publishing: "%s"' % msg.position)
 
     def get_joints_callback(self, request, response):
         response.position = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
