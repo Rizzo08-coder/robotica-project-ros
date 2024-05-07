@@ -23,6 +23,7 @@ setup(
                'talker = cobotta_rest_api.publisher_flask:main',
                'listener = cobotta_rest_api.subscriber_cobotta:main',
                'polling = cobotta_rest_api.polling_subscriber:main',
+               'prova = cobotta_rest_api.prova:main'
         ],
     },
 )
