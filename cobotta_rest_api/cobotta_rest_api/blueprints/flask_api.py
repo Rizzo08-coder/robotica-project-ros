@@ -13,13 +13,14 @@ def moveCobotta():
     joint_state = createJointState(joint_delta,  request.args.get('joint_abs', type=str))
     flask_pub.publisher.publish(joint_state)
     flask_pub.get_logger().info('Publishing: "%s"' % joint_state.position)
-    actual_joints_position = sendRequestPosition()
+    actual_joints_position = list(sendRequestPosition())
     return { 'position' : actual_joints_position }
 
 def get_joints_delta_from_request() :
     joint_delta = []
     for i in range(1, 7):
         joint_delta.append(request.args.get(f'joint_{i}', type=float))
+    joint_delta.append(request.args.get('hand', type=float))
     return joint_delta
 
 def createJointState(joint_delta, joint_abs):
@@ -27,6 +28,7 @@ def createJointState(joint_delta, joint_abs):
     joint_state.header.stamp = flask_pub.get_clock().now().to_msg()
     joint_state.header.frame_id = joint_abs
     joint_state.name = [f'joint_{i}' for i in range(1, 7)]
+    joint_state.name.append('hand')
     joint_state.position = joint_delta
     joint_state.velocity = []
     joint_state.effort = []
@@ -57,9 +59,9 @@ def savePoint(id):
     robot_position = sendRequestPosition()
     #robot_position = [27.3,22.6,36.8,92.4,333.6,32.2]
     db = get_db()
-    db.execute("INSERT INTO points (j1,j2,j3,j4,j5,j6,trajectory_id) values (?,?,?,?,?,?,?)",
+    db.execute("INSERT INTO points (j1,j2,j3,j4,j5,j6,hand,trajectory_id) values (?,?,?,?,?,?,?,?)",
                (robot_position[0], robot_position[1], robot_position[2], robot_position[3],
-                robot_position[4], robot_position[5], trajectory_id))
+                robot_position[4], robot_position[5], robot_position[6], trajectory_id))
     db.commit()
     return { 'message' : 'point add successfully' }
 
@@ -76,6 +78,7 @@ def getPoints():
                         'j4': point['j4'],
                         'j5': point['j5'],
                         'j6': point['j6'],
+                        'hand': point['hand'],
                          'trajectory_id': point['trajectory_id']} for point in points]}
 
 @bp.route("/trajectory/<int:id>/points")
@@ -89,7 +92,8 @@ def getPointsByTrajectory(id):
                         'j3': point['j3'],
                         'j4': point['j4'],
                         'j5': point['j5'],
-                        'j6': point['j6']} for point in points]}
+                        'j6': point['j6'],
+                        'hand': point['hand']} for point in points]}
 
 
 
@@ -129,6 +133,7 @@ def getJointsPosFromPoint(point):
     joints_position = []
     for i in range(1,7):
         joints_position.append(point[f'j{i}'])
+    joints_position.append(point['hand'])
     return joints_position
 
 

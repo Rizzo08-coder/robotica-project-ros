@@ -14,6 +14,7 @@ CREATE TABLE points (
   j4 FLOAT NOT NULL,
   j5 FLOAT NOT NULL,
   j6 FLOAT NOT NULL,
+  hand FLOAT NOT NULL,
   trajectory_id INTEGER NOT NULL,
   FOREIGN KEY (trajectory_id) REFERENCES trajectories (id)
 );

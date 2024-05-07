@@ -22,7 +22,7 @@ setup(
         'console_scripts': [
                'talker = cobotta_rest_api.publisher_flask:main',
                'listener = cobotta_rest_api.subscriber_cobotta:main',
-               'prova = cobotta_rest_api.publisher_prova:main',
+               'polling = cobotta_rest_api.polling_subscriber:main',
         ],
     },
 )

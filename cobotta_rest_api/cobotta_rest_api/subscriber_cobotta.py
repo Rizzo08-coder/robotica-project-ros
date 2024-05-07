@@ -51,35 +51,42 @@ class HardwareControl(Node):
     def current_position(self):
         msg = PosJoint()
         msg.position = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
+        msg.position.append(self.m_bcapclient.controller_execute(self.hCtrl, "HandCurPos"))
         self.pub_joint_states.publish(msg)
         self.get_logger().info('Publishing: "%s"' % msg.position)
 
     def get_joints_callback(self, request, response):
         response.position = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
+        response.position.append(self.m_bcapclient.controller_execute(self.hCtrl, "HandCurPos"))
         return response
 
-    def move_joint(self, j1=0, j2=0, j3=90, j4=0, j5=90, j6=0, is_joints_abs="false"):
+    def move_joint(self, j1=0, j2=0, j3=90, j4=0, j5=90, j6=0, hand=0, is_joints_abs="false"):
         self.current_joints_states = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
+        self.current_joints_states.append(self.m_bcapclient.controller_execute(self.hCtrl, "HandCurPos"))
         self.m_bcapclient.robot_execute(self.HRobot, "TakeArm")
         self.m_bcapclient.robot_execute(self.HRobot, "Motor", [1, 0])
-        self.m_bcapclient.robot_execute(self.HRobot, "ExtSpeed", 100)
-        if is_joints_abs == "false": ##FIXME
+        self.m_bcapclient.robot_execute(self.HRobot, "ExtSpeed", 80)
+        if is_joints_abs == "false":
             self.m_bcapclient.robot_move(
                   self.HRobot, 1, "@P J({},{},{},{},{},{})".format(self.current_joints_states[0]+j1,
                                                                        self.current_joints_states[1]+j2,
                                                                        self.current_joints_states[2]+j3,
                                                                        self.current_joints_states[3]+j4,
                                                                        self.current_joints_states[4]+j5,
-                                                                       self.current_joints_states[5]+j6)
+                                                                       self.current_joints_states[5]+j6 )
             )
+            self.m_bcapclient.controller_execute(self.hCtrl, "HandMoveA", [self.current_joints_states[6] + hand,100])
         else:
             self.m_bcapclient.robot_move(
                 self.HRobot, 1, "@P J({},{},{},{},{},{})".format(j1,j2,j3,j4,j5,j6)
             )
+            self.m_bcapclient.controller_execute(self.hCtrl, "HandMoveA", [hand, 100])
         self.m_bcapclient.robot_execute(self.HRobot, "GiveArm")
+
 
     def my_timer_callback(self, joint_msg):
         is_joints_abs = joint_msg.header.frame_id
+        hand = joint_msg.position[6]
         for i in range(len(joint_msg.name)):
             if i == joint_msg.name.index("joint_1"):
                 j1 = joint_msg.position[i]
@@ -95,7 +102,7 @@ class HardwareControl(Node):
                 j6 = joint_msg.position[i]
 
         self.get_logger().info('Received')
-        self.move_joint(j1, j2, j3, j4, j5, j6, is_joints_abs)
+        self.move_joint(j1, j2, j3, j4, j5, j6, hand, is_joints_abs)
 
 def main(args=None):
     rclpy.init(args=args)
