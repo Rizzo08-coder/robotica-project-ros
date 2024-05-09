@@ -1,5 +1,5 @@
 from sensor_msgs.msg import JointState
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 
 from ..db import get_db
 from ..publisher_flask import flask_pub
@@ -40,11 +40,21 @@ def createJointState(joint_delta, joint_abs):
 def createTrajectory():
     name = request.args.get('name', type=str)
     db = get_db()
+
+    if checkNameTrajectoryExists(db, name):
+        return jsonify({'error' : 'name already exists'}),400
+
     db.execute("INSERT INTO trajectories (name) values (?)", (name,))
     db.commit()
     trajectory = db.execute("SELECT * FROM trajectories WHERE name=?", (name,)).fetchone()
     return {'id': trajectory['id'],
             'name': trajectory['name']}
+
+
+def checkNameTrajectoryExists(db, name):
+    trajectory = db.execute("SELECT * FROM trajectories WHERE name=?", (name,)).fetchone()
+    return trajectory is not None
+
 
 @bp.route("/trajectories")
 def getTrajectories():
@@ -57,7 +67,6 @@ def getTrajectories():
 def savePoint(id):
     trajectory_id = id
     robot_position = sendRequestPosition()
-    #robot_position = [27.3,22.6,36.8,92.4,333.6,32.2]
     db = get_db()
     db.execute("INSERT INTO points (j1,j2,j3,j4,j5,j6,hand,trajectory_id) values (?,?,?,?,?,?,?,?)",
                (robot_position[0], robot_position[1], robot_position[2], robot_position[3],
@@ -137,7 +146,9 @@ def getJointsPosFromPoint(point):
     return joints_position
 
 
-
-
+@bp.route("/actual-joints-pos")
+def getActualJointsPos():
+    actual_joints_position = list(sendRequestPosition())
+    return {'position': actual_joints_position}
 
 
