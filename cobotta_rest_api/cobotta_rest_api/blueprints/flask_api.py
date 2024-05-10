@@ -13,7 +13,8 @@ def moveCobotta():
     joint_state = createJointState(joint_delta,  request.args.get('joint_abs', type=str))
     flask_pub.publisher.publish(joint_state)
     flask_pub.get_logger().info('Publishing: "%s"' % joint_state.position)
-    actual_joints_position = list(sendRequestPosition())
+    #actual_joints_position = list(sendRequestPosition())
+    actual_joints_position = [10.0, 24.5, 9.0, 18.0, 25.6, 18.9, 28.5]
     return { 'position' : actual_joints_position }
 
 def get_joints_delta_from_request() :
@@ -66,7 +67,8 @@ def getTrajectories():
 @bp.route("/trajectory/<int:id>/save-point") #parametri: traiettoria (id), Joints
 def savePoint(id):
     trajectory_id = id
-    robot_position = sendRequestPosition()
+    #robot_position = sendRequestPosition()
+    robot_position = [10.0, 24.5, 9.0, 18.0, 25.6, 18.9, 28.5]
     db = get_db()
     db.execute("INSERT INTO points (j1,j2,j3,j4,j5,j6,hand,trajectory_id) values (?,?,?,?,?,?,?,?)",
                (robot_position[0], robot_position[1], robot_position[2], robot_position[3],
@@ -116,6 +118,7 @@ def deletePoint(id):
 @bp.route("/trajectories/<int:id>", methods=["DELETE"]) #parametri: traiettoria (id) -> metodo DELETE
 def deleteTrajectory(id):
     db = get_db()
+    db.execute("DELETE FROM points WHERE trajectory_id = ?", (id,))
     db.execute("DELETE FROM trajectories WHERE trajectories.id = ?", (id,))
     db.commit()
     return {'message' : "trajectories deleted successfully"}
@@ -136,7 +139,7 @@ def playTrajectory(id): #TODO: fare action server con feedback
         joint_state = createJointState(joints_position, "true")
         flask_pub.publisher.publish(joint_state)
         flask_pub.get_logger().info('Publishing: "%s"' % joint_state.position)
-    return {'message' : "trajectory completed successfully"}
+    return {'message' : "trajectory sent correctly"}
 
 def getJointsPosFromPoint(point):
     joints_position = []
@@ -148,7 +151,8 @@ def getJointsPosFromPoint(point):
 
 @bp.route("/actual-joints-pos")
 def getActualJointsPos():
-    actual_joints_position = list(sendRequestPosition())
+    #actual_joints_position = list(sendRequestPosition())
+    actual_joints_position = [100.0, 242.5, 90.0, 18.0, 25.6, 18.9, 28.5]
     return {'position': actual_joints_position}
 
 
