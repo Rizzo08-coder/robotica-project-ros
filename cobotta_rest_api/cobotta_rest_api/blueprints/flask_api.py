@@ -131,7 +131,7 @@ def showTrajectory(id):
             'name': trajectory['name']}
 
 @bp.route("/trajectory/<int:id>/play") #parametri: traiettoria (id)
-def playTrajectory(id): #TODO: fare action server con feedback
+def playTrajectory(id):
     db = get_db()
     points = db.execute("SELECT * FROM points JOIN trajectories ON points.trajectory_id = trajectories.id WHERE trajectories.id = ?",(id,)).fetchall()
     for point in points:

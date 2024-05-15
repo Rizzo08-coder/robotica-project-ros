@@ -1,11 +1,13 @@
 import rclpy
 from rclpy.node import Node
+import math
 
 from .orin.bcapclient import BCAPClient as bcapclient
 
 from sensor_msgs.msg import JointState
 from my_robot_interfaces.srv import PositionJoint
 from my_robot_interfaces.msg import PosJoint
+from std_msgs.msg import Float64
 
 
 
@@ -42,11 +44,20 @@ class HardwareControl(Node):
         self.sub_joint_states = self.create_subscription(
             JointState, "/joint_states", self.my_timer_callback, 10
         )
+        self.sub_gazebo_joint_states = self.create_subscription(
+            JointState, "/gazebo_joint_states", self.gazebo_callback, 10
+        )
         self.sub_joint_states  # prevent unused variable warnings
         self.pub_joint_states = self.create_publisher(PosJoint, '/actual_joint_position', 10)
         timer_period = 0.5
         self.timer = self.create_timer(timer_period, self.current_position)
         self.current_joints_service = self.create_service(PositionJoint, '/get_position_joints', self.get_joints_callback)
+        self.pub_gazebo_j1 = self.create_publisher(Float64, '/joint1_cmd',10)
+        self.pub_gazebo_j2 = self.create_publisher(Float64, '/joint2_cmd', 10)
+        self.pub_gazebo_j3 = self.create_publisher(Float64, '/joint3_cmd', 10)
+        self.pub_gazebo_j4 = self.create_publisher(Float64, '/joint4_cmd', 10)
+        self.pub_gazebo_j5 = self.create_publisher(Float64, '/joint5_cmd', 10)
+        self.pub_gazebo_j6 = self.create_publisher(Float64, '/joint6_cmd', 10)
 
     def current_position(self):
         msg = PosJoint()
@@ -103,6 +114,47 @@ class HardwareControl(Node):
 
         self.get_logger().info('Received')
         self.move_joint(j1, j2, j3, j4, j5, j6, hand, is_joints_abs)
+        msg_j1 = Float64()
+        msg_j2 = Float64()
+        msg_j3 = Float64()
+        msg_j4 = Float64()
+        msg_j5 = Float64()
+        msg_j6 = Float64()
+        msg_j1.data = self.convert_grad_to_rad(self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0])
+        msg_j2.data = self.convert_grad_to_rad(self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[1])
+        msg_j3.data = self.convert_grad_to_rad(self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[2])
+        msg_j4.data = self.convert_grad_to_rad(self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[3])
+        msg_j5.data = self.convert_grad_to_rad(self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[4])
+        msg_j6.data = self.convert_grad_to_rad(self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[5])
+        self.pub_gazebo_j1.publish(msg_j1)
+        self.pub_gazebo_j2.publish(msg_j2)
+        self.pub_gazebo_j3.publish(msg_j3)
+        self.pub_gazebo_j4.publish(msg_j4)
+        self.pub_gazebo_j5.publish(msg_j5)
+        self.pub_gazebo_j6.publish(msg_j6)
+
+    def convert_grad_to_rad(self, num):
+        return num * (math.pi / 180)
+
+    def gazebo_callback(self, joint_msg):
+        is_joints_abs = joint_msg.header.frame_id
+        #hand = joint_msg.position[6]
+        for i in range(len(joint_msg.name)):
+            if i == joint_msg.name.index("joint_1"):
+                j1 = joint_msg.position[i]
+            elif i == joint_msg.name.index("joint_2"):
+                j2 = joint_msg.position[i]
+            elif i == joint_msg.name.index("joint_3"):
+                j3 = joint_msg.position[i]
+            elif i == joint_msg.name.index("joint_4"):
+                j4 = joint_msg.position[i]
+            elif i == joint_msg.name.index("joint_5"):
+                j5 = joint_msg.position[i]
+            elif i == joint_msg.name.index("joint_6"):
+                j6 = joint_msg.position[i]
+
+        self.get_logger().info('Received')
+        self.move_joint(j1, j2, j3, j4, j5, j6, 0, is_joints_abs)
 
 def main(args=None):
     rclpy.init(args=args)
