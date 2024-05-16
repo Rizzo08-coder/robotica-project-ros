@@ -8,7 +8,7 @@ from sensor_msgs.msg import JointState
 
 from my_robot_interfaces.msg import PosJoint
 
-class HardwareControl(Node):
+class HardwareControl(Node): #TODO: implement hand
     joint_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     current_pos= [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     def __init__(self):
@@ -37,7 +37,7 @@ class HardwareControl(Node):
         self.subscriber_gazebo_joint1 = self.create_subscription(
             JointState, "/joint_left", self.get_joint_left_gazebo, 10
         )
-        self.publisher = self.create_publisher(JointState, '/gazebo_joint_states', 10)
+        self.publisher = self.create_publisher(JointState, '/gazebo_position', 10)
         timer_period = 1.0
         self.timer = self.create_timer(timer_period, self.current_pos_gazebo)
 
@@ -100,7 +100,6 @@ class HardwareControl(Node):
             self.current_pos = msg.position
             self.publisher.publish(msg)
 
-        #self.current_pos = msg.position
 
     def isPositionChanged(self, new_joint_position, epsilon=sys.float_info.epsilon):
         for new_joint,old_joint in zip(new_joint_position, self.current_pos):

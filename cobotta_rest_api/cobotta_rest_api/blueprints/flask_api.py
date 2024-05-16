@@ -4,6 +4,8 @@ from flask import Blueprint, request, jsonify
 from ..db import get_db
 from ..publisher_flask import flask_pub
 from ..publisher_flask import sendRequestPosition
+from my_robot_interfaces.srv import ListPosJoint
+
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -67,8 +69,8 @@ def getTrajectories():
 @bp.route("/trajectory/<int:id>/save-point") #parametri: traiettoria (id), Joints
 def savePoint(id):
     trajectory_id = id
-    robot_position = sendRequestPosition()
-    #robot_position = [10.0, 24.5, 9.0, 18.0, 25.6, 18.9, 28.5]
+    #robot_position = sendRequestPosition()
+    robot_position = [10.0, 24.5, 9.0, 18.0, 25.6, 18.9, 28.5]
     db = get_db()
     db.execute("INSERT INTO points (j1,j2,j3,j4,j5,j6,hand,trajectory_id) values (?,?,?,?,?,?,?,?)",
                (robot_position[0], robot_position[1], robot_position[2], robot_position[3],
@@ -130,16 +132,21 @@ def showTrajectory(id):
     return {'id': trajectory['id'],
             'name': trajectory['name']}
 
+
+
 @bp.route("/trajectory/<int:id>/play") #parametri: traiettoria (id)
 def playTrajectory(id):
     db = get_db()
     points = db.execute("SELECT * FROM points JOIN trajectories ON points.trajectory_id = trajectories.id WHERE trajectories.id = ?",(id,)).fetchall()
+    req = ListPosJoint.Request()  #request client (service ros)
+    createListPosJoint(points, req)
+    future = flask_pub.client_play_trajectory.call(req)
+    return {'completed' : future.completed}
+
+def createListPosJoint(points, req):
     for point in points:
-        joints_position = getJointsPosFromPoint(point)
-        joint_state = createJointState(joints_position, "true")
-        flask_pub.publisher.publish(joint_state)
-        flask_pub.get_logger().info('Publishing: "%s"' % joint_state.position)
-    return {'message' : "trajectory sent correctly"}
+        joint_state = createJointState(getJointsPosFromPoint(point), "true")
+        req.joints_position.append(joint_state)
 
 def getJointsPosFromPoint(point):
     joints_position = []
