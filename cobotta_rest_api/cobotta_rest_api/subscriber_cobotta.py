@@ -13,6 +13,7 @@ from std_msgs.msg import Float64
 
 
 class HardwareControl(Node):
+    isMoving = False
     def __init__(self):
         # set IP Address , Port number and Timeout of connected RC8
         self.host = "192.168.0.1"
@@ -104,6 +105,7 @@ class HardwareControl(Node):
 
 
     def move_joint_callback(self, joint_msg):
+        self.isMoving = True
         is_joints_abs = joint_msg.header.frame_id
         j1, j2, j3, j4, j5, j6, hand = joint_msg.position[:7]
 
@@ -111,6 +113,8 @@ class HardwareControl(Node):
         self.move_cobotta(j1, j2, j3, j4, j5, j6, hand, is_joints_abs)
 
         self.update_gazebo_pos()
+        #TODO: eventuale wait
+        self.isMoving = False
 
     def update_gazebo_pos(self): #TODO: implement Hand
         msg_j = [Float64() for _ in range(6)]
@@ -126,24 +130,29 @@ class HardwareControl(Node):
             publisher.publish(msg_j_var)
 
     def play_trajectory_callback(self, request, response):
+        self.isMoving = True
         for joint_state in request.joints_position:
             is_joints_abs = joint_state.header.frame_id
             j1, j2, j3, j4, j5, j6, hand = joint_state.position[:7]
             self.move_cobotta(j1, j2, j3, j4, j5, j6, hand, is_joints_abs)
             self.update_gazebo_pos()
+            self.current_position()
         response.completed = True
+        #TODO: eventuale wait
+        self.isMoving = False
         return response
 
     def convert_grad_to_rad(self, num):
         return num * (math.pi / 180)
 
     def update_cobotta_from_gazebo_callback(self, joint_msg): #TODO: implement Hand
-        is_joints_abs = joint_msg.header.frame_id
-        #hand = joint_msg.position[6]
-        j1, j2, j3, j4, j5, j6 = joint_msg.position[:6]
+        if not(self.isMoving):
+           is_joints_abs = joint_msg.header.frame_id
+           #hand = joint_msg.position[6]
+           j1, j2, j3, j4, j5, j6 = joint_msg.position[:6]
 
-        self.get_logger().info('Received')
-        self.move_cobotta(j1, j2, j3, j4, j5, j6, 0, is_joints_abs)
+           self.get_logger().info('Received')
+           self.move_cobotta(j1, j2, j3, j4, j5, j6, 0, is_joints_abs)
 
 def main(args=None):
     rclpy.init(args=args)

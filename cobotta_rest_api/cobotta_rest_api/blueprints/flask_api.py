@@ -69,8 +69,8 @@ def getTrajectories():
 @bp.route("/trajectory/<int:id>/save-point") #parametri: traiettoria (id), Joints
 def savePoint(id):
     trajectory_id = id
-    #robot_position = sendRequestPosition()
-    robot_position = [10.0, 24.5, 9.0, 18.0, 25.6, 18.9, 28.5]
+    robot_position = sendRequestPosition()
+    #robot_position = [10.0, 24.5, 9.0, 18.0, 25.6, 18.9, 28.5]
     db = get_db()
     db.execute("INSERT INTO points (j1,j2,j3,j4,j5,j6,hand,trajectory_id) values (?,?,?,?,?,?,?,?)",
                (robot_position[0], robot_position[1], robot_position[2], robot_position[3],

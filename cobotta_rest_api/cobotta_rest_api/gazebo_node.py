@@ -6,14 +6,12 @@ from rclpy.node import Node
 
 from sensor_msgs.msg import JointState
 
-from my_robot_interfaces.msg import PosJoint
-
 class HardwareControl(Node): #TODO: implement hand
     joint_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     current_pos= [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     def __init__(self):
         super().__init__("sub_joint_state")
-        self.subscriber_gazebo_joint1 =  self.create_subscription(
+        self.subscriber_gazebo_joint1 = self.create_subscription(
             JointState, "/joint1", self.get_joint1_gazebo, 10
         )
         self.subscriber_gazebo_joint1 = self.create_subscription(
@@ -46,7 +44,7 @@ class HardwareControl(Node): #TODO: implement hand
     def get_joint1_gazebo(self, msg):
         j1 = msg.position[0]
         self.joint_position[0] = self.convert_rad_to_grad(j1)
-        #self.get_logger().info('Publishing: "%s"' % self.joint_position)
+        self.get_logger().info('Publishing: "%s"' % self.joint_position)
 
     def get_joint2_gazebo(self, msg):
         j2 = msg.position[0]
@@ -94,11 +92,11 @@ class HardwareControl(Node): #TODO: implement hand
         return joint_state
     def current_pos_gazebo(self):
         msg = self.createJointState()
-        self.get_logger().info('Publishing: "%s"' % self.current_pos)
-        self.get_logger().info('Publishing: "%s"' % msg.position)
+        self.get_logger().info('Publishing: "%s"' % self.joint_position)
         if self.isPositionChanged(msg.position, epsilon=0.1):
             self.current_pos = msg.position
             self.publisher.publish(msg)
+            self.get_logger().info('Publishing: "%s"' % self.current_pos)
 
 
     def isPositionChanged(self, new_joint_position, epsilon=sys.float_info.epsilon):

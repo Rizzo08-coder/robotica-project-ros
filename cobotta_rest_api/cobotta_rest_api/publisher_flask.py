@@ -15,7 +15,6 @@ class FlaskNode(Node):
         rclpy.init()
         super().__init__("sub_joint_state")
         self.publisher = self.create_publisher(JointState, '/move_joint', 10)
-        #self.publisher_trajectory = self.create_publisher(ListPosJoint, '/play_trajectory', 10)
         self.client = self.create_client(PositionJoint, '/get_position_joints')
         self.client_play_trajectory = self.create_client(ListPosJoint, '/play_trajectory')
 
