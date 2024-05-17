@@ -1,5 +1,9 @@
+import sys
+import time
+
 import rclpy
 from rclpy.node import Node
+
 import math
 
 from .orin.bcapclient import BCAPClient as bcapclient
@@ -13,8 +17,12 @@ from std_msgs.msg import Float64
 
 
 class HardwareControl(Node):
+    joint_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    current_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
     isMoving = False
     def __init__(self):
+        self.movements = 0
         # set IP Address , Port number and Timeout of connected RC8
         self.host = "192.168.0.1"
         self.port = 5007
@@ -69,11 +77,23 @@ class HardwareControl(Node):
         self.pub_gazebo_j6 = self.create_publisher(Float64, '/joint6_cmd', 10)
 
     def current_position(self):
+        msg = self.createPosJoint()
+        if self.isPositionChanged(msg.position, epsilon=0.1):
+            self.current_pos = msg.position
+            self.pub_joint_states.publish(msg)
+            self.get_logger().info('Publishing: "%s"' % msg.position)
+
+    def createPosJoint(self):
+        self.joint_position = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
+        self.joint_position.append(self.m_bcapclient.controller_execute(self.hCtrl, "HandCurPos"))
         msg = PosJoint()
-        msg.position = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
-        msg.position.append(self.m_bcapclient.controller_execute(self.hCtrl, "HandCurPos"))
-        self.pub_joint_states.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.position)
+        msg.position = self.joint_position
+        return msg
+    def isPositionChanged(self, new_joint_position, epsilon=sys.float_info.epsilon):
+        for new_joint,old_joint in zip(new_joint_position, self.current_pos):
+            if abs(new_joint - old_joint) > epsilon:
+                return True
+        return False
 
     def get_current_position_callback(self, request, response):
         response.position = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
@@ -105,7 +125,7 @@ class HardwareControl(Node):
 
 
     def move_joint_callback(self, joint_msg):
-        self.isMoving = True
+        self.movements = 1
         is_joints_abs = joint_msg.header.frame_id
         j1, j2, j3, j4, j5, j6, hand = joint_msg.position[:7]
 
@@ -113,8 +133,6 @@ class HardwareControl(Node):
         self.move_cobotta(j1, j2, j3, j4, j5, j6, hand, is_joints_abs)
 
         self.update_gazebo_pos()
-        #TODO: eventuale wait
-        self.isMoving = False
 
     def update_gazebo_pos(self): #TODO: implement Hand
         msg_j = [Float64() for _ in range(6)]
@@ -130,7 +148,7 @@ class HardwareControl(Node):
             publisher.publish(msg_j_var)
 
     def play_trajectory_callback(self, request, response):
-        self.isMoving = True
+        self.movements = len(request.joints_position)
         for joint_state in request.joints_position:
             is_joints_abs = joint_state.header.frame_id
             j1, j2, j3, j4, j5, j6, hand = joint_state.position[:7]
@@ -138,21 +156,21 @@ class HardwareControl(Node):
             self.update_gazebo_pos()
             self.current_position()
         response.completed = True
-        #TODO: eventuale wait
-        self.isMoving = False
         return response
 
     def convert_grad_to_rad(self, num):
         return num * (math.pi / 180)
 
     def update_cobotta_from_gazebo_callback(self, joint_msg): #TODO: implement Hand
-        if not(self.isMoving):
-           is_joints_abs = joint_msg.header.frame_id
-           #hand = joint_msg.position[6]
-           j1, j2, j3, j4, j5, j6 = joint_msg.position[:6]
+        if self.movements > 0:
+            self.movements -= 1
+            return
+        is_joints_abs = joint_msg.header.frame_id
+        j1, j2, j3, j4, j5, j6 = joint_msg.position[:6]
+        self.get_logger().info('Received')
+        self.move_cobotta(j1, j2, j3, j4, j5, j6, 0, is_joints_abs)
 
-           self.get_logger().info('Received')
-           self.move_cobotta(j1, j2, j3, j4, j5, j6, 0, is_joints_abs)
+
 
 def main(args=None):
     rclpy.init(args=args)

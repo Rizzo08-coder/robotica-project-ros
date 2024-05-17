@@ -44,7 +44,7 @@ class HardwareControl(Node): #TODO: implement hand
     def get_joint1_gazebo(self, msg):
         j1 = msg.position[0]
         self.joint_position[0] = self.convert_rad_to_grad(j1)
-        self.get_logger().info('Publishing: "%s"' % self.joint_position)
+        #self.get_logger().info('Publishing: "%s"' % self.joint_position)
 
     def get_joint2_gazebo(self, msg):
         j2 = msg.position[0]
@@ -92,7 +92,7 @@ class HardwareControl(Node): #TODO: implement hand
         return joint_state
     def current_pos_gazebo(self):
         msg = self.createJointState()
-        self.get_logger().info('Publishing: "%s"' % self.joint_position)
+       # self.get_logger().info('Publishing: "%s"' % self.joint_position)
         if self.isPositionChanged(msg.position, epsilon=0.1):
             self.current_pos = msg.position
             self.publisher.publish(msg)

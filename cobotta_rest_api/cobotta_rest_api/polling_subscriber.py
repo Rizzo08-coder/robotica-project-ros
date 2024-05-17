@@ -10,6 +10,7 @@ from flask_cors import CORS
 
 
 class FlaskNode(Node):
+
     def __init__(self):
         rclpy.init()
         super().__init__("polling_joint_state")
