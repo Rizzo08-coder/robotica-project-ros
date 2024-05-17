@@ -16,7 +16,6 @@ def moveCobotta():
     flask_pub.publisher.publish(joint_state)
     flask_pub.get_logger().info('Publishing: "%s"' % joint_state.position)
     actual_joints_position = list(sendRequestPosition())
-    #actual_joints_position = [10.0, 24.5, 9.0, 18.0, 25.6, 18.9, 28.5]
     return { 'position' : actual_joints_position }
 
 def get_joints_delta_from_request() :
@@ -66,33 +65,16 @@ def getTrajectories():
     return {'result':[{'id': trajectory['id'],
             'name': trajectory['name']} for trajectory in trajectories]}
 
-@bp.route("/trajectory/<int:id>/save-point") #parametri: traiettoria (id), Joints
+@bp.route("/trajectory/<int:id>/save-point")
 def savePoint(id):
     trajectory_id = id
     robot_position = sendRequestPosition()
-    #robot_position = [10.0, 24.5, 9.0, 18.0, 25.6, 18.9, 28.5]
     db = get_db()
     db.execute("INSERT INTO points (j1,j2,j3,j4,j5,j6,hand,trajectory_id) values (?,?,?,?,?,?,?,?)",
                (robot_position[0], robot_position[1], robot_position[2], robot_position[3],
                 robot_position[4], robot_position[5], robot_position[6], trajectory_id))
     db.commit()
     return { 'message' : 'point add successfully' }
-
-
-
-@bp.route("/points") #debug route
-def getPoints():
-    db=get_db()
-    points = db.execute("SELECT * FROM points").fetchall()
-    return {'result': [{'id': point['id'],
-                        'j1': point['j1'],
-                        'j2': point['j2'],
-                        'j3': point['j3'],
-                        'j4': point['j4'],
-                        'j5': point['j5'],
-                        'j6': point['j6'],
-                        'hand': point['hand'],
-                         'trajectory_id': point['trajectory_id']} for point in points]}
 
 @bp.route("/trajectory/<int:id>/points")
 def getPointsByTrajectory(id):
@@ -110,14 +92,14 @@ def getPointsByTrajectory(id):
 
 
 
-@bp.route("/points/<int:id>", methods=["DELETE"]) #parametri: punto (id) -> metodo DELETE
+@bp.route("/points/<int:id>", methods=["DELETE"])
 def deletePoint(id):
     db = get_db()
     db.execute("DELETE FROM points WHERE points.id = ?", (id,))
     db.commit()
     return {'message' : "point deleted successfully"}
 
-@bp.route("/trajectories/<int:id>", methods=["DELETE"]) #parametri: traiettoria (id) -> metodo DELETE
+@bp.route("/trajectories/<int:id>", methods=["DELETE"])
 def deleteTrajectory(id):
     db = get_db()
     db.execute("DELETE FROM points WHERE trajectory_id = ?", (id,))
@@ -125,7 +107,7 @@ def deleteTrajectory(id):
     db.commit()
     return {'message' : "trajectories deleted successfully"}
 
-@bp.route("/trajectory/<int:id>") #parametri: traiettoria (id)
+@bp.route("/trajectory/<int:id>")
 def showTrajectory(id):
     db = get_db()
     trajectory = db.execute("SELECT * FROM trajectories WHERE id=?", (id,)).fetchone()
@@ -134,7 +116,7 @@ def showTrajectory(id):
 
 
 
-@bp.route("/trajectory/<int:id>/play") #parametri: traiettoria (id)
+@bp.route("/trajectory/<int:id>/play")
 def playTrajectory(id):
     db = get_db()
     points = db.execute("SELECT * FROM points JOIN trajectories ON points.trajectory_id = trajectories.id WHERE trajectories.id = ?",(id,)).fetchall()
@@ -159,7 +141,6 @@ def getJointsPosFromPoint(point):
 @bp.route("/actual-joints-pos")
 def getActualJointsPos():
     actual_joints_position = list(sendRequestPosition())
-    #actual_joints_position = [100.0, 242.5, 90.0, 18.0, 25.6, 18.9, 28.5]
     return {'position': actual_joints_position}
 
 
