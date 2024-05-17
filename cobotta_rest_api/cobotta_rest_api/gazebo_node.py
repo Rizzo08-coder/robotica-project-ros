@@ -7,7 +7,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
 
-class HardwareControl(Node): 
+class HardwareControl(Node):
     joint_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     hand_position = [0.0, 0.0]
     current_pos= [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -116,12 +116,12 @@ class HardwareControl(Node):
 
 
     def fix_hand_gazebo(self):
-        if self.positionHandChanged(self.hand_position, "right", epsilon=0.1):
+        if self.isPositionHandChanged(self.hand_position, "right", epsilon=0.1):
             self.pub_gazebo_j_left.publish(self.hand_position[0]) #fix left hand
-        if self.positionHandChanged(self.hand_position, "left", epsilon=0.1):
+        if self.isPositionHandChanged(self.hand_position, "left", epsilon=0.1):
             self.pub_gazebo_j_right.publish(self.hand_position[1]) #fix right hand
 
-    def positionHandChanged(self, new_hand_position, side_hand, epsilon=sys.float_info.epsilon):
+    def isPositionHandChanged(self, new_hand_position, side_hand, epsilon=sys.float_info.epsilon):
         if side_hand == "right":
             if abs(new_hand_position[0]-self.current_pos[6]) > epsilon:
                 return True
