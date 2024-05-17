@@ -24,7 +24,6 @@ setup(
                'listener = cobotta_rest_api.subscriber_cobotta:main',
                'polling = cobotta_rest_api.polling_subscriber:main',
                'gazebo = cobotta_rest_api.gazebo_node:main',
-               'trajectory = cobotta_rest_api.trajectorynew:main'
         ],
     },
 )
