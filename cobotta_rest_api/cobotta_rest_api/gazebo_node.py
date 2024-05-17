@@ -5,39 +5,43 @@ import rclpy
 from rclpy.node import Node
 
 from sensor_msgs.msg import JointState
+from std_msgs.msg import Float64
 
 class HardwareControl(Node): #TODO: implement hand
     joint_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    current_pos= [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    current_pos= [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     def __init__(self):
         super().__init__("sub_joint_state")
         self.subscriber_gazebo_joint1 = self.create_subscription(
             JointState, "/joint1", self.get_joint1_gazebo, 10
         )
-        self.subscriber_gazebo_joint1 = self.create_subscription(
+        self.subscriber_gazebo_joint2 = self.create_subscription(
             JointState, "/joint2", self.get_joint2_gazebo, 10
         )
-        self.subscriber_gazebo_joint1 = self.create_subscription(
+        self.subscriber_gazebo_joint3 = self.create_subscription(
             JointState, "/joint3", self.get_joint3_gazebo, 10
         )
-        self.subscriber_gazebo_joint1 = self.create_subscription(
+        self.subscriber_gazebo_joint4 = self.create_subscription(
             JointState, "/joint4", self.get_joint4_gazebo, 10
         )
-        self.subscriber_gazebo_joint1 = self.create_subscription(
+        self.subscriber_gazebo_joint5 = self.create_subscription(
             JointState, "/joint5", self.get_joint5_gazebo, 10
         )
-        self.subscriber_gazebo_joint1 = self.create_subscription(
+        self.subscriber_gazebo_joint6 = self.create_subscription(
             JointState, "/joint6", self.get_joint6_gazebo, 10
         )
-        self.subscriber_gazebo_joint1 = self.create_subscription(
+        self.subscriber_gazebo_joint_right = self.create_subscription(
             JointState, "/joint_right", self.get_joint_right_gazebo, 10
         )
-        self.subscriber_gazebo_joint1 = self.create_subscription(
+        self.subscriber_gazebo_joint_left = self.create_subscription(
             JointState, "/joint_left", self.get_joint_left_gazebo, 10
         )
         self.publisher = self.create_publisher(JointState, '/gazebo_position', 10)
         timer_period = 1.0
         self.timer = self.create_timer(timer_period, self.current_pos_gazebo)
+
+        self.pub_gazebo_j_left = self.create_publisher(Float64, '/joint_left_cmd', 10)
+        self.pub_gazebo_j_right = self.create_publisher(Float64, '/joint_right_cmd', 10)
 
     def convert_rad_to_grad(self, num):
        return num * (180 / math.pi)
