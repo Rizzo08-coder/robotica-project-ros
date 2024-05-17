@@ -75,6 +75,7 @@ class HardwareControl(Node):
         self.pub_gazebo_j4 = self.create_publisher(Float64, '/joint4_cmd', 10)
         self.pub_gazebo_j5 = self.create_publisher(Float64, '/joint5_cmd', 10)
         self.pub_gazebo_j6 = self.create_publisher(Float64, '/joint6_cmd', 10)
+        self.pub_gazebo_hand = self.create_publisher(Float64, '/joint_right_cmd', 10)
 
     def current_position(self):
         msg = self.createPosJoint()
@@ -134,17 +135,18 @@ class HardwareControl(Node):
 
         self.update_gazebo_pos()
 
-    def update_gazebo_pos(self): #TODO: implement Hand
-        msg_j = [Float64() for _ in range(6)]
-        msg_j1, msg_j2, msg_j3, msg_j4, msg_j5, msg_j6 = msg_j
+    def update_gazebo_pos(self):
+        msg_j = [Float64() for _ in range(7)]
+        msg_j1, msg_j2, msg_j3, msg_j4, msg_j5, msg_j6, msg_hand = msg_j
 
         cur_joints = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')
         for i, msg_j_var in enumerate([msg_j1, msg_j2, msg_j3, msg_j4, msg_j5, msg_j6]):
             msg_j_var.data = self.convert_grad_to_rad(cur_joints[i])
+        msg_hand.data = self.m_bcapclient.controller_execute(self.hCtrl, "HandCurPos")
 
-        for msg_j_var, publisher in zip([msg_j1, msg_j2, msg_j3, msg_j4, msg_j5, msg_j6],
+        for msg_j_var, publisher in zip([msg_j1, msg_j2, msg_j3, msg_j4, msg_j5, msg_j6, msg_hand],
                                         [self.pub_gazebo_j1, self.pub_gazebo_j2, self.pub_gazebo_j3, self.pub_gazebo_j4,
-                                         self.pub_gazebo_j5, self.pub_gazebo_j6]):
+                                         self.pub_gazebo_j5, self.pub_gazebo_j6, self.pub_gazebo_hand]):
             publisher.publish(msg_j_var)
 
     def play_trajectory_callback(self, request, response):
@@ -161,14 +163,14 @@ class HardwareControl(Node):
     def convert_grad_to_rad(self, num):
         return num * (math.pi / 180)
 
-    def update_cobotta_from_gazebo_callback(self, joint_msg): #TODO: implement Hand
+    def update_cobotta_from_gazebo_callback(self, joint_msg):
         if self.movements > 0:
             self.movements -= 1
             return
         is_joints_abs = joint_msg.header.frame_id
-        j1, j2, j3, j4, j5, j6 = joint_msg.position[:6]
+        j1, j2, j3, j4, j5, j6, hand = joint_msg.position[:7]
         self.get_logger().info('Received')
-        self.move_cobotta(j1, j2, j3, j4, j5, j6, 0, is_joints_abs)
+        self.move_cobotta(j1, j2, j3, j4, j5, j6, hand, is_joints_abs)
 
 
 

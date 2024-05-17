@@ -7,7 +7,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
 
-class HardwareControl(Node): #TODO: implement hand
+class HardwareControl(Node): 
     joint_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     hand_position = [0.0, 0.0]
     current_pos= [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
