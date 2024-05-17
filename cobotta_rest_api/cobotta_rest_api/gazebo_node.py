@@ -8,8 +8,11 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
 
 class HardwareControl(Node): #TODO: implement hand
-    joint_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    current_pos= [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    joint_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    hand_position = [0.0, 0.0]
+    current_pos= [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+
     def __init__(self):
         super().__init__("sub_joint_state")
         self.subscriber_gazebo_joint1 = self.create_subscription(
@@ -37,11 +40,12 @@ class HardwareControl(Node): #TODO: implement hand
             JointState, "/joint_left", self.get_joint_left_gazebo, 10
         )
         self.publisher = self.create_publisher(JointState, '/gazebo_position', 10)
-        timer_period = 1.0
+        timer_period = 0.5
         self.timer = self.create_timer(timer_period, self.current_pos_gazebo)
 
         self.pub_gazebo_j_left = self.create_publisher(Float64, '/joint_left_cmd', 10)
         self.pub_gazebo_j_right = self.create_publisher(Float64, '/joint_right_cmd', 10)
+        self.timer_2 = self.create_timer(timer_period, self.fix_hand_gazebo)
 
     def convert_rad_to_grad(self, num):
        return num * (180 / math.pi)
@@ -77,12 +81,12 @@ class HardwareControl(Node): #TODO: implement hand
 
     def get_joint_right_gazebo(self, msg):
         j_right = msg.position[0]
-        self.joint_position[6] = j_right
+        self.hand_position[0] = j_right
         #self.get_logger().info('Publishing: "%s"' % self.joint_position)
 
     def get_joint_left_gazebo(self, msg):
         j_left = msg.position[0]
-        self.joint_position[7] = j_left
+        self.hand_position[1] = j_left
         #self.get_logger().info('Publishing: "%s"' % self.joint_position)
 
     def createJointState(self):
@@ -90,7 +94,9 @@ class HardwareControl(Node): #TODO: implement hand
         joint_state.header.stamp = self.get_clock().now().to_msg()
         joint_state.header.frame_id = "true"
         joint_state.name = [f'joint_{i}' for i in range(1, 7)]
+        joint_state.name.append('hand')
         joint_state.position = self.joint_position[0:6]
+        joint_state.position.append(self.hand_position[0])
         joint_state.velocity = []
         joint_state.effort = []
         return joint_state
@@ -102,15 +108,27 @@ class HardwareControl(Node): #TODO: implement hand
             self.publisher.publish(msg)
             self.get_logger().info('Publishing: "%s"' % self.current_pos)
 
-
     def isPositionChanged(self, new_joint_position, epsilon=sys.float_info.epsilon):
-        for new_joint,old_joint in zip(new_joint_position, self.current_pos):
+        for new_joint, old_joint in zip(new_joint_position, self.current_pos):
             if abs(new_joint - old_joint) > epsilon:
                 return True
         return False
 
 
+    def fix_hand_gazebo(self):
+        if self.positionHandChanged(self.hand_position, "right", epsilon=0.1):
+            self.pub_gazebo_j_left.publish(self.hand_position[0]) #fix left hand
+        if self.positionHandChanged(self.hand_position, "left", epsilon=0.1):
+            self.pub_gazebo_j_right.publish(self.hand_position[1]) #fix right hand
 
+    def positionHandChanged(self, new_hand_position, side_hand, epsilon=sys.float_info.epsilon):
+        if side_hand == "right":
+            if abs(new_hand_position[0]-self.current_pos[6]) > epsilon:
+                return True
+        if side_hand == "left":
+            if abs(new_hand_position[1] - self.current_pos[6]) > epsilon:
+                return True
+        return False
 
 
 
