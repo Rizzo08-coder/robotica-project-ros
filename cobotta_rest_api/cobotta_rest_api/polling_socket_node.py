@@ -13,7 +13,7 @@ class FlaskNode(Node):
 
     def __init__(self):
         rclpy.init()
-        super().__init__("polling_joint_state")
+        super().__init__("polling_socket_node")
         self.subscriber = self.create_subscription(
             PosJoint, "/actual_joint_position", self.actual_position_callback, 10
         )

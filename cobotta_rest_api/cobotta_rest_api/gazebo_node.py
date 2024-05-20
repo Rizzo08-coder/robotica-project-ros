@@ -12,7 +12,7 @@ class HardwareControl(Node):
     current_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     def __init__(self):
-        super().__init__("sub_joint_state")
+        super().__init__("gazebo_node")
         self.subscriber_gazebo_joint1 = self.create_subscription(
             JointState, "/joint1", self.get_joint1_gazebo, 10
         )

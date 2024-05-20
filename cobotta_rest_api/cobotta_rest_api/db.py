@@ -2,7 +2,7 @@ import sqlite3
 
 import click
 from flask import  g
-from .publisher_flask import app
+from .flask_node import app
 
 
 def get_db():

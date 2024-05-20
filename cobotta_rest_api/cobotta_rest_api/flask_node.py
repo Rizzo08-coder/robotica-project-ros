@@ -13,7 +13,7 @@ from flask_cors import CORS
 class FlaskNode(Node):
     def __init__(self):
         rclpy.init()
-        super().__init__("sub_joint_state")
+        super().__init__("flask_node")
         self.publisher = self.create_publisher(JointState, '/move_joint', 10)
         self.client = self.create_client(PositionJoint, '/get_position_joints')
         self.client_play_trajectory = self.create_client(ListPosJoint, '/play_trajectory')

@@ -2,8 +2,8 @@ from sensor_msgs.msg import JointState
 from flask import Blueprint, request, jsonify
 
 from ..db import get_db
-from ..publisher_flask import flask_pub
-from ..publisher_flask import sendRequestPosition
+from ..flask_node import flask_pub
+from ..flask_node import sendRequestPosition
 from my_robot_interfaces.srv import ListPosJoint
 
 

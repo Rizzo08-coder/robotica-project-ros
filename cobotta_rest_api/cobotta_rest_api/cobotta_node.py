@@ -48,7 +48,7 @@ class HardwareControl(Node):
 
         self.HRobot = self.m_bcapclient.controller_getrobot(self.hCtrl, "Arm", "")
 
-        super().__init__("sub_joint_state")
+        super().__init__("cobotta_node")
         self.sub_joint_states = self.create_subscription(
             JointState, "/move_joint", self.move_joint_callback, 10
         )
