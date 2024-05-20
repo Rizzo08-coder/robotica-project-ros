@@ -1,5 +1,4 @@
 import sys
-import time
 
 import rclpy
 from rclpy.node import Node
@@ -20,7 +19,6 @@ class HardwareControl(Node):
     joint_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     current_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-    isMoving = False
     def __init__(self):
         self.movements = 0
         # set IP Address , Port number and Timeout of connected RC8
@@ -75,7 +73,8 @@ class HardwareControl(Node):
         self.pub_gazebo_j4 = self.create_publisher(Float64, '/joint4_cmd', 10)
         self.pub_gazebo_j5 = self.create_publisher(Float64, '/joint5_cmd', 10)
         self.pub_gazebo_j6 = self.create_publisher(Float64, '/joint6_cmd', 10)
-        self.pub_gazebo_hand = self.create_publisher(Float64, '/joint_right_cmd', 10)
+        self.pub_gazebo_hand_left = self.create_publisher(Float64, '/joint_left_cmd', 10)
+        self.pub_gazebo_hand_right = self.create_publisher(Float64, '/joint_right_cmd', 10)
 
     def current_position(self):
         msg = self.createPosJoint()
@@ -84,8 +83,8 @@ class HardwareControl(Node):
             self.pub_joint_states.publish(msg)
             self.get_logger().info('Publishing: "%s"' % msg.position)
 
-            self.movements += 1 #FIXME: verificare (per teaching mode)
-            self.update_gazebo_pos()  #FIXME
+            #self.teaching_movements += 1 #FIXME: verificare (per teaching mode)
+            #self.update_gazebo_pos()  #FIXME
 
     def createPosJoint(self):
         self.joint_position = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
@@ -138,6 +137,8 @@ class HardwareControl(Node):
 
         self.update_gazebo_pos()
 
+    def convert_hand_cobotta_gazebo(self, num):
+        return num / 2000 - 0.015
     def update_gazebo_pos(self):
         msg_j = [Float64() for _ in range(7)]
         msg_j1, msg_j2, msg_j3, msg_j4, msg_j5, msg_j6, msg_hand = msg_j
@@ -145,11 +146,11 @@ class HardwareControl(Node):
         cur_joints = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')
         for i, msg_j_var in enumerate([msg_j1, msg_j2, msg_j3, msg_j4, msg_j5, msg_j6]):
             msg_j_var.data = self.convert_grad_to_rad(cur_joints[i])
-        msg_hand.data = self.m_bcapclient.controller_execute(self.hCtrl, "HandCurPos")
+        msg_hand.data = self.convert_hand_cobotta_gazebo(self.m_bcapclient.controller_execute(self.hCtrl, "HandCurPos"))
 
-        for msg_j_var, publisher in zip([msg_j1, msg_j2, msg_j3, msg_j4, msg_j5, msg_j6, msg_hand],
+        for msg_j_var, publisher in zip([msg_j1, msg_j2, msg_j3, msg_j4, msg_j5, msg_j6, msg_hand, msg_hand],
                                         [self.pub_gazebo_j1, self.pub_gazebo_j2, self.pub_gazebo_j3, self.pub_gazebo_j4,
-                                         self.pub_gazebo_j5, self.pub_gazebo_j6, self.pub_gazebo_hand]):
+                                         self.pub_gazebo_j5, self.pub_gazebo_j6, self.pub_gazebo_hand_left, self.pub_gazebo_hand_right]):
             publisher.publish(msg_j_var)
 
     def play_trajectory_callback(self, request, response):
@@ -166,14 +167,19 @@ class HardwareControl(Node):
     def convert_grad_to_rad(self, num):
         return num * (math.pi / 180)
 
+    def convert_hand_gazebo_cobotta(self, num):
+        return (num + 0.015) * 2000
+
     def update_cobotta_from_gazebo_callback(self, joint_msg):
+        print(joint_msg.position)
         if self.movements > 0:
             self.movements -= 1
             return
         is_joints_abs = joint_msg.header.frame_id
         j1, j2, j3, j4, j5, j6, hand = joint_msg.position[:7]
         self.get_logger().info('Received')
-        self.move_cobotta(j1, j2, j3, j4, j5, j6, hand, is_joints_abs)
+        self.move_cobotta(j1, j2, j3, j4, j5, j6, self.convert_hand_gazebo_cobotta(hand), is_joints_abs)
+
 
 
 
