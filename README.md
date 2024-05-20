@@ -53,8 +53,20 @@ rosdep install --from-paths src -y --ignore-src
 ```
 
 
-## start flask-backend (on localhost:5000)
+## start all the environment correctly (follow the next lines in order)
 
 ```bash
-python3 {name_file.py}
+ros2 run cobotta_rest_api talker
+```
+
+```bash
+ros2 run cobotta_rest_api listener
+```
+
+```bash
+ros2 run cobotta_rest_api polling
+```
+
+```bash
+ros2 run cobotta_rest_api gazebo
 ```
