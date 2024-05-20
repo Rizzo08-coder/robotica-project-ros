@@ -53,7 +53,7 @@ rosdep install --from-paths src -y --ignore-src
 ```
 
 
-## start all the environment correctly (follow the next lines in order)
+## Start environment correctly (follow the next lines in order)
 
 ```bash
 ros2 run cobotta_rest_api talker
