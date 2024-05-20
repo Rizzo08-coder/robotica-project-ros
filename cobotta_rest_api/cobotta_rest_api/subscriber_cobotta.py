@@ -83,9 +83,6 @@ class HardwareControl(Node):
             self.pub_joint_states.publish(msg)
             self.get_logger().info('Publishing: "%s"' % msg.position)
 
-            #self.teaching_movements += 1 #FIXME: verificare (per teaching mode)
-            #self.update_gazebo_pos()  #FIXME
-
     def createPosJoint(self):
         self.joint_position = self.m_bcapclient.robot_execute(self.HRobot, 'CurJnt')[0:6]
         self.joint_position.append(self.m_bcapclient.controller_execute(self.hCtrl, "HandCurPos"))
