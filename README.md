@@ -10,17 +10,6 @@ git clone {url} src
 virtualenv .venv --system-site-packages
 ```
 
-## start environment
-```bash
-source .venv/bin/activate
-
-colcon build 
-
-source /opt/ros/humble/setup.bash
-
-source install/setup.bash
-```
-
 ## import ROS library in PyCharm
 Linux
 ```bash
@@ -46,6 +35,13 @@ Install Flask
 pip install Flask
 ```
 
+Install Flask Web Socket 
+
+```bash
+pip install flask-socketio
+```
+
+
 Add dependecy in ros project (in ros2_ws directory)
 ```bash
 apt-get install python3-rosdep
@@ -54,6 +50,13 @@ rosdep install --from-paths src -y --ignore-src
 
 
 ## Start environment correctly (follow the next lines in order)
+
+for each terminal go in ros2_ws directory (this project would be clone in ros2_ws/src)
+
+```bash
+colcon build
+source install/setup.bash
+```
 
 ```bash
 ros2 run cobotta_rest_api talker
