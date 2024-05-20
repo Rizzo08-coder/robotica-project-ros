@@ -73,3 +73,17 @@ ros2 run cobotta_rest_api polling
 ```bash
 ros2 run cobotta_rest_api gazebo
 ```
+
+
+start gazebo simulator and bridge with ROS2
+
+move in Cobotta directory (where there is the sdf model file)
+```bash
+ign gazebo -v 4 worldCobotta.sdf
+```
+
+bridge run using map.yaml conf file (insert the correct path)
+```bash
+ ros2 run ros_gz_bridge parameter_bridge --ros-args -p config_file:=../Cobotta/map.yaml
+```
+
