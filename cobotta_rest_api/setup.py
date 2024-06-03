@@ -20,10 +20,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-               'talker = cobotta_rest_api.flask_node:main',
-               'listener = cobotta_rest_api.cobotta_node:main',
-               'polling = cobotta_rest_api.polling_socket_node:main',
-               'gazebo = cobotta_rest_api.gazebo_node:main',
+               'flask_node = cobotta_rest_api.flask_node:main',
+               'cobotta_node = cobotta_rest_api.cobotta_node:main',
+               'polling_socket_node = cobotta_rest_api.polling_socket_node:main',
+               'gazebo_node = cobotta_rest_api.gazebo_node:main',
         ],
     },
 )
