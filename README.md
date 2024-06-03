@@ -59,19 +59,19 @@ source install/setup.bash
 ```
 
 ```bash
-ros2 run cobotta_rest_api talker
+ros2 run cobotta_rest_api flask_node
 ```
 
 ```bash
-ros2 run cobotta_rest_api listener
+ros2 run cobotta_rest_api cobotta_node
 ```
 
 ```bash
-ros2 run cobotta_rest_api polling
+ros2 run cobotta_rest_api polling_socket_node
 ```
 
 ```bash
-ros2 run cobotta_rest_api gazebo
+ros2 run cobotta_rest_api gazebo_node
 ```
 
 
